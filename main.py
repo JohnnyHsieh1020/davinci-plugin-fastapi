@@ -1,4 +1,5 @@
 from fastapi import FastAPI
+import json
 
 app = FastAPI()
 
@@ -24,7 +25,7 @@ async def home():
     }
     
 
-    return plugin
+    return json.dumps(plugin)
 
 @app.get("/correct_answer")
 async def get_corr_ans():
