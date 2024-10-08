@@ -19,13 +19,67 @@ async def home():
       "api": {
         "type": "python",
         "python": {
-          "source": "import json\nimport asyncio\nfrom pyodide.http import pyfetch\nimport sys\nimport io\nimport os\nfrom io import StringIO\nimport pandas as pd\n\n\nresponse = await chat(\n    conversation=CURRENT_CONVERSATION + [\n        {\n        \"role\": \"system\",\n        \"content\": \"Ouput the {stu_ans} then output the {corr_ans}.\"\n        }\n    ]\n)\n\n#\u6279\u6539\u4f5c\u696dfunction\nasync def compare(stu_ans, corr_ans):\n    if stu_ans:\n        print(\"Got student's answer\")\n    if corr_ans:\n        print(\"Got correst answer\")\n    return True\n\n    \nasync def main():\n    try:\n        print('CURRENT_CONVERSATION:'+str(CURRENT_CONVERSATION)) \n        try:\n            with open(SELECTED_FILES[0]['subject']) as f:\n                stu_ans=f.read()\n                print(SELECTED_FILES[0]['title'])\n                print(stu_ans)\n            \n            # \u6253API\u53d6\u5f97\u6b63\u78ba\u7b54\u6848\n            response = await pyfetch(\"https://davinci-plugin-fastapi.onrender.com/correct_answer\")\n            \n            # \u53d6\u4f3a\u670d\u5668\u7aef\u7d66\u7684\u8cc7\u6599\n            data = await response.json()\n        \n            # \u53ea\u63d0\u53d6\u6b63\u78ba\u7b54\u6848\n            filtered = data[\"corr_ans\"]\n            # \u5c07\u5b57\u4e32\u8f49\u63db\u70ba DataFrame\n            corr_ans_df = pd.read_csv(StringIO(filtered), sep=\"\\t\")\n            corr_ans = [print(row['\u7b54\u6848']) for _, row in corr_ans_df.iterrows()]\n        except Exception as ex:\n            print('SELECTED_FILES ERROR')\n\n        result = await compare(stu_ans, corr_ans)\n        if result: print(\"checked!!\")\n    except Exception as e:\n        print(f\"\u767c\u751f\u932f\u8aa4\uff1a{str(e)}\")\n\nawait main()\n"
+          "source": """import json
+import asyncio
+from pyodide.http import pyfetch
+import sys
+import io
+import os
+from io import StringIO
+import pandas as pd
+
+response = await chat(
+    conversation=CURRENT_CONVERSATION + [
+        {
+        "role": "system",
+        "content": "Ouput the {stu_ans} then output the {corr_ans}."
+        }
+    ]
+)
+
+async def compare(stu_ans, corr_ans):
+    if stu_ans:
+        print("Got student's answer")
+    if corr_ans:
+        print("Got correst answer")
+    return True
+
+async def main():
+    try:
+        print('CURRENT_CONVERSATION:'+str(CURRENT_CONVERSATION)) 
+        try:
+            with open(SELECTED_FILES[0]['subject']) as f:
+                stu_ans=f.read()
+                print(SELECTED_FILES[0]['title'])
+                print(stu_ans)
+            
+            # 打API取得正確答案
+            response = await pyfetch("https://davinci-plugin-fastapi.onrender.com/correct_answer")
+            
+            # 取伺服器端給的資料
+            data = await response
+        
+            # 只提取正確答案
+            filtered = data["corr_ans"]
+            # 將字串轉換為 DataFrame
+            corr_ans_df = pd.read_csv(StringIO(filtered), sep="\t")
+            corr_ans = [print(row['答案']) for _, row in corr_ans_df.iterrows()]
+        except Exception as ex:
+            print('SELECTED_FILES ERROR')
+
+        result = await compare(stu_ans, corr_ans)
+        if result: print("checked!!")
+    except Exception as e:
+        print(f"發生錯誤：{str(e)}")
+
+await main()
+"""        
         }
       }
     }
     
 
-    return json.dumps(plugin, indent=2).encode('utf8')
+    return plugin
 
 @app.get("/correct_answer")
 async def get_corr_ans():
