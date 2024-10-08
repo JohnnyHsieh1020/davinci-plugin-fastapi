@@ -32,7 +32,7 @@ response = await chat(
     conversation=CURRENT_CONVERSATION + [
         {
         "role": "system",
-        "content": "Ouput the {stu_ans} then output the {corr_ans}."
+        "content": "Ouput the stu_ans then output the corr_ans."
         }
     ]
 )
@@ -57,17 +57,15 @@ async def main():
             response = await pyfetch("https://davinci-plugin-fastapi.onrender.com/correct_answer")
             
             # 取伺服器端給的資料
-            data = await response
-        
+            data = await response.json
+ 
             # 只提取正確答案
             filtered = data["corr_ans"]
-            # 將字串轉換為 DataFrame
-            corr_ans_df = pd.read_csv(StringIO(filtered), sep="\t")
-            corr_ans = [print(row['答案']) for _, row in corr_ans_df.iterrows()]
+            print(filtered)
         except Exception as ex:
             print('SELECTED_FILES ERROR')
 
-        result = await compare(stu_ans, corr_ans)
+        # result = await compare(stu_ans, corr_ans)
         if result: print("checked!!")
     except Exception as e:
         print(f"發生錯誤：{str(e)}")
