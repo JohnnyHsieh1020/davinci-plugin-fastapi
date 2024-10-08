@@ -57,11 +57,8 @@ async def main():
             response = await pyfetch("https://davinci-plugin-fastapi.onrender.com/correct_answer")
             
             # 取伺服器端給的資料
-            data = await response.json
- 
-            # 只提取正確答案
-            filtered = data["corr_ans"]
-            print(filtered)
+            data = await response.json()
+            print(data)
         except Exception as ex:
             print('SELECTED_FILES ERROR')
 
