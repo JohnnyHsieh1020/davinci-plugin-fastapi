@@ -25,7 +25,7 @@ async def home():
     }
     
 
-    return json.dumps(plugin)
+    return json.dumps(plugin, indent=2).encode('utf8')
 
 @app.get("/correct_answer")
 async def get_corr_ans():
